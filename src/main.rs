@@ -1,3 +1,5 @@
+pub mod logger;
+
 use std::io::{stdout, Write, stdin};
 
 use regex::Regex;
@@ -15,12 +17,14 @@ fn get_username_from_io() -> Result<String, &'static str> {
 
     let _ = stdout().flush();
     stdin().read_line(&mut input).expect("Invalid string input!");
+    let input = String::from(input.trim());
 
     let ex = Regex::new(r"^[a-zA-Z-1-9_]{3,16}$").unwrap();
 
-    if ex.is_match(&input.trim()) {
+    if ex.is_match(&input) {
        Ok(input)
     } else {
+        logger::error(format!("\"{}\" is not a valid username", input).as_str());
         Err("Invalid username format!")
     }
 }

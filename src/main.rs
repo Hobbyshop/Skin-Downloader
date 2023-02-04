@@ -60,6 +60,7 @@ fn get_username_from_io() -> Result<String, &'static str> {
        Ok(input)
     } else {
         logger::error(format!("\"{}\" is not a valid username", input).as_str());
+        pause_cmd();
         Err("Invalid username format!")
     }
 }

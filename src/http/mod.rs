@@ -1,5 +1,6 @@
 use std::{collections::HashMap};
 
+use bytes::Bytes;
 use reqwest::Client;
 
 pub async fn get_as_json(url: String) -> Result<HashMap<String, String>, reqwest::Error> {
@@ -13,13 +14,13 @@ pub async fn get_as_json(url: String) -> Result<HashMap<String, String>, reqwest
     Ok(response)
 }
 
-pub async fn get_as_bytes(url: String) -> Result<Vec<u8>, reqwest::Error> {
+pub async fn get_as_bytes(url: String) -> Result<Bytes, reqwest::Error> {
     let response = Client::new()
         .get(url)
         .send()
         .await?
-        .text()
+        .bytes()
         .await?;
 
-    Ok(Vec::from(response.as_bytes()))
+    Ok(response)
 }

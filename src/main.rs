@@ -2,6 +2,7 @@ pub mod logger;
 mod http;
 
 use std::{io::{stdout, Write, stdin}, fs::File};
+use bytes::Bytes;
 use regex::Regex;
 
 #[tokio::main]
@@ -10,13 +11,13 @@ async fn main() -> Result<(), reqwest::Error> {
 
     let username = get_username_from_io().unwrap();
 
-    let user_data = http::get_as_json("https://api.mojang.com/users/profiles/minecraft/".to_owned() + username.as_str()).await.unwrap();
+    let user_data = http::get_as_json("https://api.mojang.com/users/profiles/minecraft/".to_owned() + username.as_str()).await?;
     let username = &user_data["name"];
 
-    let skin_image = http::get_as_bytes("https://crafatar.com/skins/6d53bf220ad14e6b892a4cb6032e8a9f".to_string()).await?;
+    let skin_bytes = http::get_as_bytes("https://crafatar.com/skins/".to_owned() + &user_data["id"]).await?;
 
     let file = File::create(username.to_owned() + ".png").expect("Could not find nor create the image file!");
-    write_to_file(file, skin_image);
+    write_to_file(file, skin_bytes);
 
     Ok(())
 }
@@ -39,7 +40,6 @@ fn get_username_from_io() -> Result<String, &'static str> {
     }
 }
 
-fn write_to_file(mut file: File, bytes: Vec<u8>) {
-    let byte_slice = bytes.as_slice();
-    file.write_all(byte_slice).expect("Could not write bytes to file");
+fn write_to_file(mut file: File, bytes: Bytes) {
+    file.write(&bytes).unwrap();
 }

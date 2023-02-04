@@ -1,8 +1,8 @@
 pub mod logger;
+mod http;
 
-use std::{io::{stdout, Write, stdin}, collections::HashMap};
+use std::{io::{stdout, Write, stdin}, fs::File};
 use regex::Regex;
-use reqwest::Client;
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -10,8 +10,13 @@ async fn main() -> Result<(), reqwest::Error> {
 
     let username = get_username_from_io().unwrap();
 
-    let uuid = get_uuid_from_http(username).await.unwrap();
-    println!("{}", uuid);
+    let user_data = http::get_as_json("https://api.mojang.com/users/profiles/minecraft/".to_owned() + username.as_str()).await.unwrap();
+    let username = &user_data["name"];
+
+    let skin_image = http::get_as_bytes("https://crafatar.com/skins/6d53bf220ad14e6b892a4cb6032e8a9f".to_string()).await?;
+
+    let file = File::create(username.to_owned() + ".png").expect("Could not find nor create the image file!");
+    write_to_file(file, skin_image);
 
     Ok(())
 }
@@ -34,13 +39,7 @@ fn get_username_from_io() -> Result<String, &'static str> {
     }
 }
 
-async fn get_uuid_from_http(username: String) -> Result<String, reqwest::Error> {
-    let response = Client::new()
-        .get("https://api.mojang.com/users/profiles/minecraft/".to_owned() + username.as_str())
-        .send()
-        .await?
-        .json::<HashMap<String, String>>()
-        .await?;
-    
-    Ok(response["id"].to_string())
+fn write_to_file(mut file: File, bytes: Vec<u8>) {
+    let byte_slice = bytes.as_slice();
+    file.write_all(byte_slice).expect("Could not write bytes to file");
 }

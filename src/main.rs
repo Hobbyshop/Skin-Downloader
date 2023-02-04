@@ -1,7 +1,7 @@
 pub mod logger;
 mod http;
 
-use std::{io::{stdout, Write, stdin}, fs::File};
+use std::{io::{stdout, Write, stdin, Read}, fs::File};
 use bytes::Bytes;
 use regex::Regex;
 
@@ -41,6 +41,8 @@ async fn main() -> Result<(), reqwest::Error> {
     let file = File::create(username.to_owned() + ".png").expect("Could not find nor create the image file!");
     write_to_file(file, skin_bytes);
 
+    pause_cmd();
+
     Ok(())
 }
 
@@ -65,4 +67,10 @@ fn get_username_from_io() -> Result<String, &'static str> {
 fn write_to_file(mut file: File, bytes: Bytes) {
     file.write(&bytes).unwrap();
     logger::log("Image saved");
+}
+
+fn pause_cmd() {
+    logger::log(">> Press any key to exit <<");
+    let _ = stdout().flush();
+    let _ = stdin().read(&mut [0u8]).unwrap();
 }
